@@ -1,43 +1,41 @@
 pipeline {
     agent any
 
+    environment {
+        COMPOSE_PROJECT_NAME = "react-flask-mongodb-pipeline"
+    }
+
     stages {
 
-        stage('Checkout Source Code') {
+        stage('Checkout Code') {
             steps {
                 git branch: 'main',
                     url: 'https://github.com/hind-aitalla/react-flask-mongodb-devops.git'
             }
         }
 
-        stage('Show Docker Versions') {
+        stage('Stop Existing Containers') {
             steps {
                 sh '''
-                  docker --version
-                  docker-compose --version
+                  docker-compose down --remove-orphans || true
+                  docker ps -aq | xargs -r docker rm -f || true
                 '''
             }
         }
 
-        stage('Stop Existing Containers') {
-            steps {
-                sh 'docker-compose down || true'
-            }
-        }
-
-        stage('Build Images') {
+        stage('Build Docker Images') {
             steps {
                 sh 'docker-compose build'
             }
         }
 
-        stage('Run Application') {
+        stage('Run Containers') {
             steps {
                 sh 'docker-compose up -d'
             }
         }
 
-        stage('Check Containers') {
+        stage('Verify Containers') {
             steps {
                 sh 'docker ps'
             }
@@ -49,7 +47,7 @@ pipeline {
             echo '✅ Pipeline exécuté avec succès'
         }
         failure {
-            echo '❌ Pipeline échoué'
+            echo '❌ Échec du pipeline'
         }
     }
 }
