@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        COMPOSE_PROJECT_NAME = "reactflaskmongo"
-    }
-
     stages {
 
         stage('Checkout Source Code') {
@@ -14,44 +10,36 @@ pipeline {
             }
         }
 
-        stage('Show Docker & Compose Versions') {
+        stage('Show Docker Versions') {
             steps {
                 sh '''
                   docker --version
-                  docker compose version
+                  docker-compose --version
                 '''
             }
         }
 
         stage('Stop Existing Containers') {
             steps {
-                sh '''
-                  docker compose down || true
-                '''
+                sh 'docker-compose down || true'
             }
         }
 
-        stage('Build Docker Images') {
+        stage('Build Images') {
             steps {
-                sh '''
-                  docker compose build
-                '''
+                sh 'docker-compose build'
             }
         }
 
         stage('Run Application') {
             steps {
-                sh '''
-                  docker compose up -d
-                '''
+                sh 'docker-compose up -d'
             }
         }
 
-        stage('Check Running Containers') {
+        stage('Check Containers') {
             steps {
-                sh '''
-                  docker ps
-                '''
+                sh 'docker ps'
             }
         }
     }
@@ -61,7 +49,7 @@ pipeline {
             echo '✅ Pipeline exécuté avec succès'
         }
         failure {
-            echo '❌ Échec du pipeline : vérifie les logs'
+            echo '❌ Pipeline échoué'
         }
     }
 }
