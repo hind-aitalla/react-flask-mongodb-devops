@@ -11,7 +11,7 @@ pipeline {
         stage('Checkout Source Code') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/TON_USERNAME/react-flask-mongodb-v1.git'
+                    url: 'https://github.com/hind-aitalla/react-flask-mongodb-devops.git'
             }
         }
 
