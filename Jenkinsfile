@@ -2,8 +2,7 @@ pipeline {
     agent any
 
     environment {
-        COMPOSE_DOCKER_CLI_BUILD = '1'
-        DOCKER_BUILDKIT = '1'
+        COMPOSE_PROJECT_NAME = "react-flask-mongodb"
     }
 
     stages {
@@ -17,42 +16,53 @@ pipeline {
 
         stage('Show Docker & Compose Versions') {
             steps {
-                sh 'docker --version'
-                sh 'docker compose version'
-            }
-        }
-
-        stage('Build Docker Images') {
-            steps {
-                sh 'docker compose build'
+                sh '''
+                    docker --version
+                    docker-compose --version
+                '''
             }
         }
 
         stage('Stop Existing Containers') {
             steps {
-                sh 'docker compose down || true'
+                sh '''
+                    docker-compose down || true
+                '''
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                sh '''
+                    docker-compose build
+                '''
             }
         }
 
         stage('Run Application') {
             steps {
-                sh 'docker compose up -d'
+                sh '''
+                    docker-compose up -d
+                '''
             }
         }
 
         stage('Check Running Containers') {
             steps {
-                sh 'docker ps'
+                sh '''
+                    docker ps
+                '''
             }
         }
     }
 
     post {
         success {
-            echo 'Pipeline terminé avec succès : Application déployée'
+            echo '✅ Pipeline exécuté avec succès'
         }
         failure {
-            echo 'Échec du pipeline : Vérifie les logs'
+            echo '❌ Échec du pipeline : vérifie les logs'
         }
     }
 }
+
