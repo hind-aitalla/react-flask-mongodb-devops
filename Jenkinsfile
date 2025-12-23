@@ -9,56 +9,33 @@ pipeline {
 
         stage('Checkout Source Code') {
             steps {
+                echo 'Pull du projet depuis GitHub'
                 git branch: 'main',
                     url: 'https://github.com/hind-aitalla/react-flask-mongodb-devops.git'
             }
         }
 
-        stage('Show Docker Versions') {
+        stage('Build Application') {
             steps {
-                sh '''
-                  echo "=== Docker version ==="
-                  docker --version
-
-                  echo "=== Docker Compose version ==="
-                  docker-compose --version
-                '''
-            }
-        }
-
-        stage('Stop Existing Containers') {
-            steps {
-                sh '''
-                  echo "=== Stop old containers ==="
-                  docker-compose down --remove-orphans || true
-                '''
-            }
-        }
-
-        stage('Build Docker Images') {
-            steps {
-                sh '''
-                  echo "=== Build images ==="
-                  docker-compose build
-                '''
+                echo 'Build des images Docker avec Docker Compose'
+                sh 'docker compose build'
             }
         }
 
         stage('Run Application') {
             steps {
+                echo 'Lancement de l’application localement'
                 sh '''
-                  echo "=== Start containers ==="
-                  docker-compose up -d
+                docker compose down || true
+                docker compose up -d
                 '''
             }
         }
 
         stage('Check Running Containers') {
             steps {
-                sh '''
-                  echo "=== Running containers ==="
-                  docker ps
-                '''
+                echo 'Vérification des conteneurs en cours d’exécution'
+                sh 'docker ps'
             }
         }
     }
@@ -68,10 +45,8 @@ pipeline {
             echo '✅ Pipeline exécuté avec succès – Application lancée'
         }
         failure {
-            echo '❌ Échec du pipeline – Vérifie les logs'
-        }
-        always {
-            echo '📦 Fin du pipeline'
+            echo '❌ Échec du pipeline – Vérifiez les logs Jenkins'
         }
     }
 }
+
