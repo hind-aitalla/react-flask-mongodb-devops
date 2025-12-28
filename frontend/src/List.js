@@ -53,7 +53,7 @@ class List extends Component {
 
     return (
       <div className="container mt-5">
-        <h2>Todo List test</h2>
+        <h2>Todo List test  </h2>
 
         <form onSubmit={this.handleSubmit}>
           <input
