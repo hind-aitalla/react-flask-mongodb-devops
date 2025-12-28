@@ -3,11 +3,14 @@ version: "3.8"
 services:
   mongodb:
     image: mongo:latest
+    container_name: mongodb
     ports:
       - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
 
   backend:
-    build: ./backend
+    image: hindaitalla/flask-backend:latest
     container_name: flask-backend
     ports:
       - "5000:5000"
@@ -15,9 +18,13 @@ services:
       - mongodb
 
   frontend:
-    build: ./frontend
+    image: hindaitalla/react-frontend:latest
     container_name: react-frontend
     ports:
       - "3000:3000"
     depends_on:
       - backend
+
+volumes:
+  mongo_data:
+

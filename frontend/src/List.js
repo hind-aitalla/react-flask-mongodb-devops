@@ -1,143 +1,100 @@
-import React, { Component } from 'react'
-import { getList, addToList, deleteItem, updateItem } from './ListFunctions'
+import React, { Component } from "react";
+import axios from "axios";
+
+const API_URL = "http://localhost:5000/api/tasks";
 
 class List extends Component {
-    constructor() {
-        super()
-        this.state = {
-            id: '',
-            term: '',
-            editDisabled: false,
-            items: []
-        }
+  state = {
+    tasks: [],
+    title: "",
+    editingId: null,
+  };
 
-        this.onSubmit = this.onSubmit.bind(this)
-        this.onChange = this.onChange.bind(this)
+  componentDidMount() {
+    this.fetchTasks();
+  }
+
+  fetchTasks = async () => {
+    const res = await axios.get(API_URL);
+    this.setState({ tasks: res.data });
+  };
+
+  handleChange = (e) => {
+    this.setState({ title: e.target.value });
+  };
+
+  handleSubmit = async (e) => {
+    e.preventDefault();
+    const { title, editingId } = this.state;
+
+    if (!title.trim()) return;
+
+    if (editingId) {
+      await axios.put(`${API_URL}/${editingId}`, { title });
+    } else {
+      await axios.post(API_URL, { title });
     }
 
-    componentDidMount () {
-        this.getAll()
-    }
+    this.setState({ title: "", editingId: null });
+    this.fetchTasks();
+  };
 
-    onChange = event => {
-        this.setState({
-            term: event.target.value,
-            editDisabled: 'disabled'
-        })
-    }
+  editTask = (task) => {
+    this.setState({ title: task.title, editingId: task.id });
+  };
 
-    getAll = () => {
-        getList().then(data => {
-            this.setState(
-                {
-                    term: '',
-                    items: [...data]
-                },
-                () => {
-                    console.log(this.state.term)
-                }
-            )
-        })
-    }
+  deleteTask = async (id) => {
+    await axios.delete(`${API_URL}/${id}`);
+    this.fetchTasks();
+  };
 
-    onSubmit = e => {
-        e.preventDefault()
-        this.setState({ editDisabled: '' })
-        addToList(this.state.term).then(() => {
-            this.getAll()
-        })
-    }
+  render() {
+    const { tasks, title, editingId } = this.state;
 
-    onUpdate = e => {
-        e.preventDefault()
-        updateItem(this.state.term, this.state.id).then(() => {
-            this.getAll()
-        })
-    }
+    return (
+      <div className="container mt-5">
+        <h2>Todo List</h2>
 
-    onEdit = (item, itemid, e) => {
-        e.preventDefault()
-        this.setState({
-            id: itemid,
-            term: item
-        })
-        console.log(itemid)
-    }
+        <form onSubmit={this.handleSubmit}>
+          <input
+            className="form-control mb-3"
+            placeholder="Nouvelle tâche"
+            value={title}
+            onChange={this.handleChange}
+          />
+          <button className="btn btn-primary mb-3">
+            {editingId ? "Update" : "Add"}
+          </button>
+        </form>
 
-    onDelete = (val, e) => {
-        e.preventDefault()
-        deleteItem(val)
-
-        var data = [...this.state.items]
-        data.filter((item, index) => {
-            if (item[1] === val) {
-                data.splice(index, 1)
-            }
-            return true
-        })
-        this.setState({ items: [...data] })
-    }
-
-    render () {
-        return (
-            <div className="col-md-12">
-                <form onSubmit={this.onSubmit}>
-                    <div className="form-group">
-                        <label htmlFor="input1">Task Name</label>
-                        <div className="row">
-                            <div className="col-md-9">
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    id="input1"
-                                    value={this.state.term || ''}
-                                    onChange={this.onChange.bind(this)}
-                                />
-                            </div>
-                            <div className="col-md-2">
-                                <button
-                                    className="btn btn-primary"
-                                    onClick={this.onUpdate.bind(this)}>
-                                    Update
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <button
-                        type="submit"
-                        onClick={this.onSubmit.bind(this)}
-                        className="btn btn-success btn-block">
-                        Submit
-                    </button>
-                </form>
-                <table className="table">
-                    <tbody>
-                        {this.state.items.map((item, index) => (
-                            <tr key={index}>
-                                <td className="text-left">{item[0]}</td>
-                                <td className="text-right">
-                                    <button
-                                        className="btn btn-info mr-1"
-                                        disabled={this.state.editDisabled}
-                                        onClick={this.onEdit.bind(this, item[0], item[1])}
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        className="btn btn-danger"
-                                        disabled={this.state.editDisabled}
-                                        onClick={this.onDelete.bind(this, item[1])}
-                                    >
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        )
-    }
+        <ul className="list-group">
+          {tasks.map((task) => (
+            <li
+              key={task.id}
+              className="list-group-item d-flex justify-content-between align-items-center"
+            >
+              {task.title}
+              <div>
+                <button
+                  className="btn btn-sm btn-warning me-2"
+                  onClick={() => this.editTask(task)}
+                >
+                  Edit
+                </button>
+                <button
+                  className="btn btn-sm btn-danger"
+                  onClick={() => this.deleteTask(task.id)}
+                >
+                  Delete
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
 }
 
-export default List
+export default List;
+
